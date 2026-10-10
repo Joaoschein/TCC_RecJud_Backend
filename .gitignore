@@ -35,3 +35,12 @@ out/
 
 ### VS Code ###
 .vscode/
+
+### Local uploads ###
+uploads/
+backups/
+tools/presentation/
+
+# Local credentials and runtime logs
+application-local.properties
+*.log

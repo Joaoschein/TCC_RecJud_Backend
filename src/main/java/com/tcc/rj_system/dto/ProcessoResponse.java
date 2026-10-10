@@ -12,8 +12,12 @@ public record ProcessoResponse(
         String empresa,
         String cnpj,
         String vara,
+        String juizResponsavel,
+        String comarca,
+        String administradorJudicial,
         LocalDate abertura,
         BigDecimal valorTotal,
         StatusProcesso status,
-        List<CredorResumoResponse> credores) {
+        List<CredorResumoResponse> credores,
+        List<EventoTimelineResponse> timeline) {
 }

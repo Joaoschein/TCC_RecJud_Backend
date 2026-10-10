@@ -22,7 +22,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class AuthService {
 
-    private static final String DEFAULT_ROLE = "ADMIN";
+    private static final String DEFAULT_ROLE = "OPERADOR";
 
     private final UsuarioRepository usuarioRepository;
     private final PasswordEncoder passwordEncoder;

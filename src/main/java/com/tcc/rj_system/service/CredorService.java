@@ -4,12 +4,19 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Map;
+import java.util.HashMap;
+import java.util.UUID;
+import java.nio.charset.StandardCharsets;
 
 import org.springframework.stereotype.Service;
 
+import com.tcc.rj_system.dto.CredorImportRequest;
+import com.tcc.rj_system.dto.CredorImportResponse;
 import com.tcc.rj_system.dto.CredorRequest;
 import com.tcc.rj_system.dto.CredorResponse;
 import com.tcc.rj_system.exception.ResourceNotFoundException;
+import com.tcc.rj_system.exception.BusinessException;
 import com.tcc.rj_system.model.Credor;
 import com.tcc.rj_system.model.Processo;
 import com.tcc.rj_system.repository.CredorRepository;
@@ -29,6 +36,34 @@ public class CredorService {
         Credor credor = credorRepository.save(toEntity(request, processo));
         vincularCredorAoProcesso(processo, credor);
         return toResponse(credor);
+    }
+
+    public CredorImportResponse importar(CredorImportRequest request) {
+        // Validate all referenced processes before the first write.
+        Map<String, Processo> processos = new HashMap<>();
+        request.credores().forEach(item -> processos.computeIfAbsent(item.processoId(), this::buscarProcesso));
+        List<CredorResponse> credoresImportados = request.credores()
+                .stream()
+                .map(item -> {
+                    Processo processo = processos.get(item.processoId());
+                    // Stable IDs make retries of an identical import safe, including after a failed link write.
+                    String key = String.join("\u001f", item.processoId(), item.documento(), item.nome(),
+                            item.tipo().name(), item.valor().stripTrailingZeros().toPlainString(), item.status().name());
+                    String id = "import-" + UUID.nameUUIDFromBytes(key.getBytes(StandardCharsets.UTF_8));
+                    Credor credor = credorRepository.findById(id).orElseGet(() -> {
+                        Credor novo = toEntity(item, processo);
+                        novo.setId(id);
+                        return credorRepository.save(novo);
+                    });
+                    if (credor.getProcesso() == null || !Objects.equals(credor.getProcesso().getId(), processo.getId())) {
+                        throw new BusinessException("Um credor deste lote foi transferido ou perdeu seu processo. Revise o cadastro antes de repetir a importacao.");
+                    }
+                    vincularCredorAoProcesso(processo, credor);
+                    return toResponse(credor);
+                })
+                .toList();
+
+        return new CredorImportResponse(credoresImportados.size(), credoresImportados);
     }
 
     public List<CredorResponse> listar() {
@@ -138,6 +173,7 @@ public class CredorService {
                 credor.getDocumento(),
                 credor.getProcesso().getId(),
                 credor.getProcesso().getNumeroProcesso(),
+                credor.getProcesso().getEmpresa(),
                 credor.getTipo(),
                 credor.getTipo().getClasse(),
                 credor.getTipo().getDescricao(),

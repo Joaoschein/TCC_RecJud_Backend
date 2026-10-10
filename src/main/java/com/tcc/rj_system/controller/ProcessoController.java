@@ -4,6 +4,7 @@ import java.net.URI;
 import java.util.List;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -14,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
+import com.tcc.rj_system.dto.EventoTimelineRequest;
 import com.tcc.rj_system.dto.ProcessoRequest;
 import com.tcc.rj_system.dto.ProcessoResponse;
 import com.tcc.rj_system.service.ProcessoService;
@@ -24,6 +26,7 @@ import lombok.RequiredArgsConstructor;
 @RestController
 @RequestMapping("/api/processos")
 @RequiredArgsConstructor
+@Validated
 public class ProcessoController {
 
     private final ProcessoService processoService;
@@ -54,6 +57,13 @@ public class ProcessoController {
             @PathVariable String id,
             @Valid @RequestBody ProcessoRequest request) {
         return ResponseEntity.ok(processoService.atualizar(id, request));
+    }
+
+    @PutMapping("/{id}/timeline")
+    public ResponseEntity<ProcessoResponse> atualizarTimeline(
+            @PathVariable String id,
+            @Valid @RequestBody List<EventoTimelineRequest> timeline) {
+        return ResponseEntity.ok(processoService.atualizarTimeline(id, timeline));
     }
 
     @DeleteMapping("/{id}")

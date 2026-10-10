@@ -1,0 +1,22 @@
+allprojects {
+    afterEvaluate { project ->
+        if (project.plugins.hasPlugin('java')) {
+            def compileTool = tasks.register('compilePresentationTool', JavaCompile) {
+                source = fileTree('tools/java') { include '**/*.java' }
+                classpath = sourceSets.main.runtimeClasspath
+                destinationDirectory = layout.buildDirectory.dir('presentation-tool')
+                javaCompiler = javaToolchains.compilerFor { languageVersion = JavaLanguageVersion.of(21) }
+                options.encoding = 'UTF-8'
+                dependsOn tasks.named('classes')
+            }
+            tasks.register('presentationData', JavaExec) {
+                dependsOn compileTool
+                classpath = files(compileTool.map { it.destinationDirectory }) + sourceSets.main.runtimeClasspath
+                mainClass = 'PresentationData'
+                javaLauncher = javaToolchains.launcherFor { languageVersion = JavaLanguageVersion.of(21) }
+                args = project.hasProperty('verifyPresentationData') ? ['--verify'] : project.hasProperty('replacePresentationData') ? ['--apply'] : ['--inspect']
+                systemProperty 'org.slf4j.simpleLogger.defaultLogLevel', 'warn'
+            }
+        }
+    }
+}

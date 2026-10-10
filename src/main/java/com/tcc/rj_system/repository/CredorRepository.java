@@ -10,4 +10,5 @@ import com.tcc.rj_system.model.Processo;
 public interface CredorRepository extends MongoRepository<Credor, String> {
 
     List<Credor> findByProcesso(Processo processo);
+    boolean existsByProcesso(Processo processo);
 }
