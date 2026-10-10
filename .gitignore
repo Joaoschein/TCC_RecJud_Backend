@@ -44,3 +44,6 @@ tools/presentation/
 # Local credentials and runtime logs
 application-local.properties
 *.log
+.env
+.env.*
+!.env.example
