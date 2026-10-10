@@ -2,7 +2,7 @@
   "info": {
     "_postman_id": "3f627d7d-a05b-4571-b713-a6f49ae4cb90",
     "name": "RJ System API",
-    "description": "Collection base para testes da API de autenticacao e processos do RJ System.",
+    "description": "Collection atualizada para testes da API do RJ System: autenticacao, processos, timeline, credores, importacao e documentos.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "item": [
@@ -35,6 +35,22 @@
       "item": [
         {
           "name": "Registrar Usuario",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 201 || pm.response.code === 200) {",
+                  "  const json = pm.response.json();",
+                  "  if (json.accessToken) {",
+                  "    pm.collectionVariables.set('token', json.accessToken);",
+                  "  }",
+                  "}"
+                ]
+              }
+            }
+          ],
           "request": {
             "method": "POST",
             "header": [
@@ -172,6 +188,22 @@
         },
         {
           "name": "Criar Processo",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code >= 200 && pm.response.code < 300) {",
+                  "  const json = pm.response.json();",
+                  "  if (json.id) {",
+                  "    pm.collectionVariables.set('processoId', json.id);",
+                  "  }",
+                  "}"
+                ]
+              }
+            }
+          ],
           "request": {
             "method": "POST",
             "header": [
@@ -186,7 +218,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"numeroProcesso\": \"0001234-56.2026.8.19.0001\",\n  \"empresa\": \"Empresa Exemplo LTDA\",\n  \"cnpj\": \"12.345.678/0001-90\",\n  \"vara\": \"1a Vara Empresarial\",\n  \"abertura\": \"2026-04-08\",\n  \"valorTotal\": 250000.00,\n  \"status\": \"EM_ANDAMENTO\"\n}",
+              "raw": "{\n  \"numeroProcesso\": \"0001234-56.2026.8.19.0001\",\n  \"empresa\": \"Empresa Exemplo LTDA\",\n  \"cnpj\": \"12.345.678/0001-90\",\n  \"vara\": \"1a Vara Empresarial\",\n  \"juizResponsavel\": \"Dr. Jose Silva Santos\",\n  \"comarca\": \"Maceio - AL\",\n  \"administradorJudicial\": \"Maria Oliveira - OAB/AL 12345\",\n  \"abertura\": \"2026-04-08\",\n  \"status\": \"EM_ANDAMENTO\",\n  \"timeline\": [\n    {\n      \"titulo\": \"Nomeacao do Administrador Judicial\",\n      \"descricao\": \"Maria Oliveira nomeada como administradora judicial\",\n      \"data\": \"2026-01-20\",\n      \"status\": \"CUMPRIDO\"\n    },\n    {\n      \"titulo\": \"Prazo para habilitacao de creditos\",\n      \"descricao\": \"Prazo limite para credores apresentarem seus creditos\",\n      \"data\": \"2026-03-15\",\n      \"status\": \"PENDENTE\"\n    }\n  ]\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -202,7 +234,8 @@
                 "api",
                 "processos"
               ]
-            }
+            },
+            "description": "Cria processo. O passivo sujeito a recuperacao judicial nao e enviado; ele e calculado pela soma dos credores vinculados."
           },
           "response": []
         },
@@ -246,7 +279,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"numeroProcesso\": \"0001234-56.2026.8.19.0001\",\n  \"empresa\": \"Empresa Exemplo LTDA\",\n  \"cnpj\": \"12.345.678/0001-90\",\n  \"vara\": \"1a Vara Empresarial\",\n  \"abertura\": \"2026-04-08\",\n  \"valorTotal\": 250000.00,\n  \"status\": \"APROVADO\"\n}",
+              "raw": "{\n  \"numeroProcesso\": \"0001234-56.2026.8.19.0001\",\n  \"empresa\": \"Empresa Exemplo LTDA\",\n  \"cnpj\": \"12.345.678/0001-90\",\n  \"vara\": \"1a Vara Empresarial\",\n  \"juizResponsavel\": \"Dr. Jose Silva Santos\",\n  \"comarca\": \"Maceio - AL\",\n  \"administradorJudicial\": \"Maria Oliveira - OAB/AL 12345 atualizado\",\n  \"abertura\": \"2026-04-08\",\n  \"status\": \"APROVADO\",\n  \"timeline\": [\n    {\n      \"titulo\": \"Nomeacao do Administrador Judicial\",\n      \"descricao\": \"Maria Oliveira nomeada como administradora judicial\",\n      \"data\": \"2026-01-20\",\n      \"status\": \"CUMPRIDO\"\n    },\n    {\n      \"titulo\": \"Prazo para habilitacao de creditos\",\n      \"descricao\": \"Prazo limite para credores apresentarem seus creditos\",\n      \"data\": \"2026-03-15\",\n      \"status\": \"PENDENTE\"\n    }\n  ]\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -262,6 +295,45 @@
                 "api",
                 "processos",
                 "{{processoId}}"
+              ]
+            },
+            "description": "Atualiza dados cadastrais do processo. Envie timeline para preserva-la quando estiver usando PUT completo."
+          },
+          "response": []
+        },
+        {
+          "name": "Atualizar Timeline do Processo",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "[\n  {\n    \"titulo\": \"Publicacao do Edital\",\n    \"descricao\": \"Edital publicado para habilitacao de credores\",\n    \"data\": \"2026-01-25\",\n    \"status\": \"CUMPRIDO\"\n  },\n  {\n    \"titulo\": \"Assembleia Geral de Credores\",\n    \"descricao\": \"Assembleia para votacao do plano de recuperacao\",\n    \"data\": \"2026-06-15\",\n    \"status\": \"PENDENTE\"\n  }\n]",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/processos/{{processoId}}/timeline",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "processos",
+                "{{processoId}}",
+                "timeline"
               ]
             }
           },
@@ -350,6 +422,22 @@
         },
         {
           "name": "Criar Credor",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code >= 200 && pm.response.code < 300) {",
+                  "  const json = pm.response.json();",
+                  "  if (json.id) {",
+                  "    pm.collectionVariables.set('credorId', json.id);",
+                  "  }",
+                  "}"
+                ]
+              }
+            }
+          ],
           "request": {
             "method": "POST",
             "header": [
@@ -364,7 +452,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"nome\": \"Credor Exemplo LTDA\",\n  \"documento\": \"12.345.678/0001-90\",\n  \"processoId\": \"{{processoId}}\",\n  \"tipo\": 3,\n  \"valor\": 15000.00,\n  \"status\": \"PENDENTE\"\n}",
+              "raw": "{\n  \"nome\": \"Credor Exemplo LTDA\",\n  \"documento\": \"12.345.678/0001-90\",\n  \"processoId\": \"{{processoId}}\",\n  \"tipo\": \"QUIROGRAFARIO\",\n  \"valor\": 15000,\n  \"status\": \"PENDENTE\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -381,7 +469,45 @@
                 "credores"
               ]
             },
-            "description": "Cria um credor vinculado a um processo existente. O campo tipo aceita 1, 2, 3, 4 ou nomes como TRABALHISTA, GARANTIA_REAL, QUIROGRAFARIO e ME_EPP."
+            "description": "Cria um credor vinculado ao processo. Apos criar, o passivo do processo passa a considerar esse valor."
+          },
+          "response": []
+        },
+        {
+          "name": "Importar Credores em Lote",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"credores\": [\n    {\n      \"nome\": \"ADAIR SILVEIRA RODRIGUES\",\n      \"documento\": \"748.848.080-53\",\n      \"processoId\": \"{{processoId}}\",\n      \"tipo\": \"TRABALHISTA\",\n      \"valor\": 20123.18,\n      \"status\": \"PENDENTE\"\n    },\n    {\n      \"nome\": \"ADRIANO DIAS VOSIAK\",\n      \"documento\": \"028.584.620-54\",\n      \"processoId\": \"{{processoId}}\",\n      \"tipo\": \"TRABALHISTA\",\n      \"valor\": 40000,\n      \"status\": \"PENDENTE\"\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/credores/importar",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "credores",
+                "importar"
+              ]
+            },
+            "description": "Importa uma lista de credores ja normalizada pelo frontend a partir do XLSX."
           },
           "response": []
         },
@@ -425,7 +551,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"nome\": \"Credor Exemplo LTDA\",\n  \"documento\": \"12.345.678/0001-90\",\n  \"processoId\": \"{{processoId}}\",\n  \"tipo\": \"QUIROGRAFARIO\",\n  \"valor\": 17500.00,\n  \"status\": \"HABILITADO\"\n}",
+              "raw": "{\n  \"nome\": \"Credor Exemplo LTDA\",\n  \"documento\": \"12.345.678/0001-90\",\n  \"processoId\": \"{{processoId}}\",\n  \"tipo\": \"QUIROGRAFARIO\",\n  \"valor\": 17500,\n  \"status\": \"HABILITADO\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -471,6 +597,270 @@
           "response": []
         }
       ]
+    },
+    {
+      "name": "Documentos",
+      "item": [
+        {
+          "name": "Upload Documento do Processo",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "arquivo",
+                  "type": "file",
+                  "src": []
+                },
+                {
+                  "key": "nome",
+                  "type": "text",
+                  "value": "Relacao de Credores"
+                },
+                {
+                  "key": "tipo",
+                  "type": "text",
+                  "value": "Relacao de Credores"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/processos/{{processoId}}/documentos",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "processos",
+                "{{processoId}}",
+                "documentos"
+              ]
+            },
+            "description": "Envia um arquivo multipart vinculado ao processo. Escolha o arquivo no campo arquivo antes de enviar."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code >= 200 && pm.response.code < 300) {",
+                  "  const json = pm.response.json();",
+                  "  if (json.id) {",
+                  "    pm.collectionVariables.set('documentoId', json.id);",
+                  "  }",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "Listar Documentos do Processo",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/processos/{{processoId}}/documentos",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "processos",
+                "{{processoId}}",
+                "documentos"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Download Documento",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/documentos/{{documentoId}}/download",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "documentos",
+                "{{documentoId}}",
+                "download"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Remover Documento",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/documentos/{{documentoId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "documentos",
+                "{{documentoId}}"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Demonstracao de Erros",
+      "item": [
+        {
+          "name": "Erro 400 - Processo com Numero Curto",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"numeroProcesso\": \"12345\",\n  \"empresa\": \"Empresa Exemplo LTDA\",\n  \"cnpj\": \"12.345.678/0001-90\",\n  \"vara\": \"1a Vara Empresarial\",\n  \"juizResponsavel\": \"Dr. Jose Silva Santos\",\n  \"comarca\": \"Maceio - AL\",\n  \"administradorJudicial\": \"Maria Oliveira - OAB/AL 12345\",\n  \"abertura\": \"2026-04-08\",\n  \"status\": \"EM_ANDAMENTO\",\n  \"timeline\": [\n    {\n      \"titulo\": \"Nomeacao do Administrador Judicial\",\n      \"descricao\": \"Maria Oliveira nomeada como administradora judicial\",\n      \"data\": \"2026-01-20\",\n      \"status\": \"CUMPRIDO\"\n    },\n    {\n      \"titulo\": \"Prazo para habilitacao de creditos\",\n      \"descricao\": \"Prazo limite para credores apresentarem seus creditos\",\n      \"data\": \"2026-03-15\",\n      \"status\": \"PENDENTE\"\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/processos",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "processos"
+              ]
+            },
+            "description": "Demonstra erro de validacao: numero de processo invalido."
+          },
+          "response": []
+        },
+        {
+          "name": "Erro 400 - Credor sem Documento",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nome\": \"Credor Sem Documento\",\n  \"documento\": \"\",\n  \"processoId\": \"{{processoId}}\",\n  \"tipo\": \"TRABALHISTA\",\n  \"valor\": 1000,\n  \"status\": \"PENDENTE\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/credores",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "credores"
+              ]
+            },
+            "description": "Demonstra erro de validacao de campo obrigatorio no backend."
+          },
+          "response": []
+        },
+        {
+          "name": "Erro 401 - Sem Token",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/processos",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "processos"
+              ]
+            },
+            "description": "Demonstra erro de autenticacao ao chamar endpoint protegido sem bearer token."
+          },
+          "response": []
+        },
+        {
+          "name": "Erro 404 - Processo Inexistente",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/processos/nao-existe",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "processos",
+                "nao-existe"
+              ]
+            },
+            "description": "Demonstra erro de recurso nao encontrado."
+          },
+          "response": []
+        }
+      ]
     }
   ],
   "variable": [
@@ -488,6 +878,10 @@
     },
     {
       "key": "credorId",
+      "value": ""
+    },
+    {
+      "key": "documentoId",
       "value": ""
     }
   ]

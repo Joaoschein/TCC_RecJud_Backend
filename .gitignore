@@ -35,3 +35,13 @@ out/
 
 ### VS Code ###
 .vscode/
+
+### Local uploads ###
+uploads/
+
+# Local runtime files
+*.log
+uploads/
+.env
+.env.*
+!.env.example

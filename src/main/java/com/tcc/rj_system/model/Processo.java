@@ -36,6 +36,12 @@ public class Processo {
 
     private String vara;
 
+    private String juizResponsavel;
+
+    private String comarca;
+
+    private String administradorJudicial;
+
     private LocalDate abertura;
 
     private BigDecimal valorTotal;
@@ -45,4 +51,7 @@ public class Processo {
     @Builder.Default
     @DBRef
     private List<Credor> credores = new ArrayList<>();
+
+    @Builder.Default
+    private List<EventoTimeline> timeline = new ArrayList<>();
 }

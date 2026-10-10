@@ -12,6 +12,7 @@ public record CredorResponse(
         String documento,
         String processoId,
         String numeroProcesso,
+        String processoNome,
         TipoCredor tipo,
         int classe,
         String tipoDescricao,

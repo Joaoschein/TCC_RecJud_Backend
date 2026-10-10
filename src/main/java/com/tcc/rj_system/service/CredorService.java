@@ -7,6 +7,8 @@ import java.util.Objects;
 
 import org.springframework.stereotype.Service;
 
+import com.tcc.rj_system.dto.CredorImportRequest;
+import com.tcc.rj_system.dto.CredorImportResponse;
 import com.tcc.rj_system.dto.CredorRequest;
 import com.tcc.rj_system.dto.CredorResponse;
 import com.tcc.rj_system.exception.ResourceNotFoundException;
@@ -29,6 +31,15 @@ public class CredorService {
         Credor credor = credorRepository.save(toEntity(request, processo));
         vincularCredorAoProcesso(processo, credor);
         return toResponse(credor);
+    }
+
+    public CredorImportResponse importar(CredorImportRequest request) {
+        List<CredorResponse> credoresImportados = request.credores()
+                .stream()
+                .map(this::criar)
+                .toList();
+
+        return new CredorImportResponse(credoresImportados.size(), credoresImportados);
     }
 
     public List<CredorResponse> listar() {
@@ -138,6 +149,7 @@ public class CredorService {
                 credor.getDocumento(),
                 credor.getProcesso().getId(),
                 credor.getProcesso().getNumeroProcesso(),
+                credor.getProcesso().getEmpresa(),
                 credor.getTipo(),
                 credor.getTipo().getClasse(),
                 credor.getTipo().getDescricao(),

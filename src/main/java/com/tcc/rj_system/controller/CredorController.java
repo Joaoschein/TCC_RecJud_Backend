@@ -17,6 +17,8 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import com.tcc.rj_system.dto.CredorRequest;
 import com.tcc.rj_system.dto.CredorResponse;
+import com.tcc.rj_system.dto.CredorImportRequest;
+import com.tcc.rj_system.dto.CredorImportResponse;
 import com.tcc.rj_system.service.CredorService;
 
 import jakarta.validation.Valid;
@@ -38,6 +40,11 @@ public class CredorController {
                 .buildAndExpand(response.id())
                 .toUri();
         return ResponseEntity.created(location).body(response);
+    }
+
+    @PostMapping("/importar")
+    public ResponseEntity<CredorImportResponse> importar(@Valid @RequestBody CredorImportRequest request) {
+        return ResponseEntity.ok(credorService.importar(request));
     }
 
     @GetMapping
